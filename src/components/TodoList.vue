@@ -3,16 +3,16 @@
     <div class="add-todo">
       <h1 class="text-center my-4">Todo List</h1>
       <div class="mb-3">
-        <input v-model="newTodoName" @keyup.enter="addTodo" class="form-control" placeholder="Todo name" />
+        <input v-model="newTodoName" @keyup.enter="newTodo" class="form-control" placeholder="Todo name" />
       </div>
       <div class="mb-3">
-        <input v-model="newTodoDescription" @keyup.enter="addTodo" class="form-control" placeholder="Todo description" />
+        <input v-model="newTodoDescription" @keyup.enter="newTodo" class="form-control" placeholder="Todo description" />
       </div>
       <button @click="newTodo" class="btn btn-primary w-100">Add Todo</button>
     </div>
 
     <div class="todo-list mt-5">
-      <div class="card mb-3" v-for="(todo, index) in todos" :key="index">
+      <div class="card mb-3" v-for="(todo) in todos" :key="todo.id">
         <div class="card-body d-flex justify-content-between align-items-start grid gap-0 column-gap-3">
           <input 
             class="form-check-input" 
@@ -46,7 +46,6 @@ export default {
     const newTodoName = ref('');
     const newTodoDescription = ref('');
 
-    // Fetch Todos
     const fetchTodos = async () => {
       try {
         const result = await client.graphql({ query: listTodos });
@@ -56,7 +55,6 @@ export default {
       }
     };
 
-    // Add Todo
     const newTodo = async () => {
       if (newTodoName.value.trim()) {
         const todoDetails = { 
@@ -67,7 +65,7 @@ export default {
           await client.graphql({ 
             query: addTodo,
             variables: todoDetails
-          })
+          });
           newTodoName.value = '';
           newTodoDescription.value = '';
         } catch (error) {
@@ -76,7 +74,6 @@ export default {
       }
     };
 
-    // Remove Todo
     const removeTodo = async (id) => {
       try {
         const result = await client.graphql({
@@ -90,11 +87,9 @@ export default {
       } catch (error) {
         console.error('Error deleting todo:', error);
       }
-    }
+    };
 
-    // Toggle Completed or Not
     const toggleCompleted = async (id, completed) => {
-      console.log(id, completed);
       try {
         const result = await client.graphql({
           query: updateTodoStatus,
@@ -111,10 +106,9 @@ export default {
       } catch (error) {
         console.error('Error updating todo status:', error);
       }
-    }
+    };
 
-    // Subscribe to todos
-    const subscribeToNewTodos = () => {
+    const subscribeToTodos = () => {
       const newSub = client
         .graphql({ query: subscriptions.onTodoAdded })
         .subscribe({
@@ -143,7 +137,7 @@ export default {
             const index = todos.value.findIndex(todo => todo.id === updateTodoItem.id);
 
             if (index !== -1) {
-              todos.value[index].completed = updateTodoItem.completed;
+              todos.value[index] = updateTodoItem;
             }
           },
           error: (error) => console.error('Error on todo subscription:', error),
@@ -158,7 +152,7 @@ export default {
 
     onMounted(() => {
       fetchTodos();
-      subscribeToNewTodos();
+      subscribeToTodos();
     });
 
     return {
@@ -167,10 +161,10 @@ export default {
       newTodoDescription,
       newTodo,
       removeTodo,
-      toggleCompleted,
+      toggleCompleted
     };
   }
-}
+};
 </script>
 
 <style scoped>

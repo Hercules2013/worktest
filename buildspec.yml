@@ -7,6 +7,10 @@ phases:
   build:
     commands:
       - npm run build
+  post_build:
+    commands:
+      - echo "Build complete, uploading to S3..."
+      - aws s3 cp dist/ s3://qlerify-vue-worktest/ --recursive --acl public-read --cache-control "max-age=31536000" --metadata-directive REPLACE
 
 artifacts:
   files:
