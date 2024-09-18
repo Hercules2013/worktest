@@ -10,6 +10,7 @@ phases:
   post_build:
     commands:
       - echo "Build complete, uploading to S3..."
+      - aws s3 rm s3://qlerify-vue-worktest/ --recursive
       - aws s3 cp dist/ s3://qlerify-vue-worktest/ --recursive --cache-control "max-age=31536000" --metadata-directive REPLACE
 
 artifacts:
